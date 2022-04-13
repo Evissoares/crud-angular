@@ -31,14 +31,14 @@ export class CidadesComponent implements OnInit {
   // objeto para atualizar lista de quantidade de pessoas por estado
   estatistica !: Estatistica
 
-  // Carrega a lista de pessoas salvas no json-server
+  // manipula os dados do formulário para trocas
   pessoa: Pessoa = new Pessoa();
+
+  // guarda a lista de pessoas salvas no json-server
   listaPessoas: Pessoa[] = [];
 
   // muda estado dos botões do crud
   editarCampos: boolean = false;
-
-  // troca os dados do formulário em duas vias
 
   // valida o botão de submit caso o formulário seja válido
   submitted = false;
@@ -182,18 +182,15 @@ export class CidadesComponent implements OnInit {
 
       let pessoaAntiga: Pessoa = this.pessoa
       let idPessoaAntiga = this.pessoa.id
-      console.log("ID JSON" + idPessoaAntiga)
       this.pessoa = this.formulario.value
 
       if (this.pessoasIguais(pessoaAntiga, this.pessoa)) {
-        console.log("IDENTICO")
         this.cancelar()
         return
       }
 
       listaAuxiliar.splice(this.idSelecionado, 1)
       this.pessoa.id = idPessoaAntiga
-      console.log("ID JSON TROCADO" + this.pessoa.id)
       this.apiPessoa.put(this.pessoa).subscribe(pessoa => {
 
         if (pessoaAntiga.estado === this.pessoa.estado) {
@@ -202,8 +199,7 @@ export class CidadesComponent implements OnInit {
           this.listaPessoas = listaAuxiliar
           this.cancelar()
           return
-          // this.somarPessoaPorEstado(pessoa)
-          // this.listaPessoas[this.idSelecionado] = pessoa
+
         } else {
           this.subtrairPessoaPorEstado(pessoaAntiga)
           this.somarPessoaPorEstado(pessoa)
@@ -211,7 +207,6 @@ export class CidadesComponent implements OnInit {
           this.listaPessoas = listaAuxiliar
           this.cancelar()
           return
-          // this.listaPessoas[this.idSelecionado] = pessoa
         }
 
       })
