@@ -1,3 +1,4 @@
+import { ThisReceiver } from '@angular/compiler';
 import { nullSafeIsEquivalent } from '@angular/compiler/src/output/output_ast';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
@@ -20,7 +21,6 @@ export class CidadesComponent implements OnInit {
   cidades: Cidade[] = [];
   estados: string[] = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
 
-
   cidade !: Cidade;
   estado: string = ""
   nome: string = ""
@@ -40,11 +40,10 @@ export class CidadesComponent implements OnInit {
 
   // troca os dados do formulário em duas vias
 
-
   // valida o botão de submit caso o formulário seja válido
   submitted = false;
 
-  estatisticas: any[] = [];
+  estatisticas: Estatistica[] = [];
 
   constructor(
     private apiCidade: CidadeService,
@@ -145,16 +144,11 @@ export class CidadesComponent implements OnInit {
 
   criar() {
 
-
-
-    // atribui os valores do formulário para a variável pessoa
-
-
-
     if (this.onSubmit()) {
       this.pessoa = this.formulario.value
       for (let i = 0; i < this.listaPessoas.length; i++) {
         if (this.listaPessoas[i].nome === this.pessoa.nome) {
+          alert("Nome ja cadastrado.")
           return
         }
       }
@@ -183,28 +177,46 @@ export class CidadesComponent implements OnInit {
 
   editar() {
 
-
-
+    let listaAuxiliar: Pessoa[] = this.listaPessoas
     if (this.onSubmit()) {
+
       let pessoaAntiga: Pessoa = this.pessoa
       let idPessoaAntiga = this.pessoa.id
+      console.log("ID JSON" + idPessoaAntiga)
       this.pessoa = this.formulario.value
+
+      if (this.pessoasIguais(pessoaAntiga, this.pessoa)) {
+        console.log("IDENTICO")
+        this.cancelar()
+        return
+      }
+
+      listaAuxiliar.splice(this.idSelecionado, 1)
       this.pessoa.id = idPessoaAntiga
+      console.log("ID JSON TROCADO" + this.pessoa.id)
       this.apiPessoa.put(this.pessoa).subscribe(pessoa => {
 
-
         if (pessoaAntiga.estado === this.pessoa.estado) {
-          this.somarPessoaPorEstado(pessoa)
-          this.listaPessoas[this.idSelecionado] = pessoa
+
+          listaAuxiliar.push(pessoa)
+          this.listaPessoas = listaAuxiliar
+          this.cancelar()
+          return
+          // this.somarPessoaPorEstado(pessoa)
+          // this.listaPessoas[this.idSelecionado] = pessoa
         } else {
           this.subtrairPessoaPorEstado(pessoaAntiga)
           this.somarPessoaPorEstado(pessoa)
-          this.listaPessoas[this.idSelecionado] = pessoa
+          listaAuxiliar.push(pessoa)
+          this.listaPessoas = listaAuxiliar
+          this.cancelar()
+          return
+          // this.listaPessoas[this.idSelecionado] = pessoa
         }
-        
+
       })
     }
-    
+
 
   }
 
@@ -252,7 +264,13 @@ export class CidadesComponent implements OnInit {
     this.idSelecionado = -1
   }
 
-
+  pessoasIguais(p: Pessoa, p2: Pessoa) {
+    return (p.cidade === p2.cidade &&
+      p.email === p2.email &&
+      p.estado === p2.estado &&
+      p.nome === p2.nome &&
+      p.telefone === p2.telefone)
+  }
 
 
 
