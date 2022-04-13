@@ -1,3 +1,4 @@
+import { nullSafeIsEquivalent } from '@angular/compiler/src/output/output_ast';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
@@ -20,11 +21,12 @@ export class CidadesComponent implements OnInit {
   estados: string[] = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
 
 
-  cidade : string = ""
-  estado : string = ""
-  nome : string = ""
-  email : string = ""
-  telefone : string = ""
+  cidade !: Cidade;
+  estado: string = ""
+  nome: string = ""
+  email: string = ""
+  telefone: string = ""
+  idSelecionado !: number
 
   // objeto para atualizar lista de quantidade de pessoas por estado
   estatistica !: Estatistica
@@ -42,37 +44,30 @@ export class CidadesComponent implements OnInit {
   // valida o botão de submit caso o formulário seja válido
   submitted = false;
 
-  // 
-  existe = false;
-
-
   estatisticas: any[] = [];
 
   constructor(
     private apiCidade: CidadeService,
     private apiPessoa: PessoaService,
-    private formBuilder: FormBuilder
   ) { }
 
+  // Formulário para controle dos campos no HTML
   formulario = new FormGroup({
 
-      cidade: new FormControl(this.cidade, [Validators.required]),
-      estado: new FormControl(this.estado, [Validators.required, Validators.pattern("[a-zA-Z]*")]),
-      nome: new FormControl(this.nome),
-      email: new FormControl(this.email, [Validators.required, Validators.email]),
-      telefone: new FormControl(this.telefone, [Validators.required, Validators.pattern("\\d+")]),
+    cidade: new FormControl(this.cidade, [Validators.required]),
+    estado: new FormControl(this.estado, [Validators.required]),
+    nome: new FormControl(this.nome, [Validators.required, Validators.pattern("^[a-zA-Zà-úÀ-Ú ]*$")]),
+    email: new FormControl(this.email, [Validators.required, Validators.pattern("^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$")]),
+    telefone: new FormControl(this.telefone, [Validators.required, Validators.pattern("\\d+")]),
 
-    })
+  })
 
   ngOnInit(): void {
 
-    
-
     this.getAllPessoas();
-
   }
 
-
+  // Aumenta um na contagem de pessoas por estado ou adiciona um card com a estatística do novo estado
   somarPessoaPorEstado(p: Pessoa) {
     for (let i = 0; i < this.estatisticas.length; i++) {
       if (this.estatisticas[i].estado == p.estado) {
@@ -137,10 +132,6 @@ export class CidadesComponent implements OnInit {
   }
 
 
-
-
-
-
   // CRUD PESSOAS
 
   // executa a lógica válida para salvar um cadastro no json
@@ -148,68 +139,96 @@ export class CidadesComponent implements OnInit {
 
     // sinaliza no ngIf do html que o botão submit foi invocado e habilita as divs com informações sobre os valores aceitos nos campos do formulário
     this.submitted = true;
-
-    // caso os campos do formulário estejam inválidos, finaliza a execução da chamada do método
-    if (this.formulario.invalid) {
-      return;
-    }
-
-    // retorna o indice da lista a partir de uma expressão booleana passada na arrow function ou -1 caso a condição seja falsa
-    let indice = this.listaPessoas.findIndex(linhaJson => {
-      linhaJson.nome == this.pessoa.nome
-    });
-
-    // caso a condição do findIndex seja falsa, o -1 garante que não existe o nome na lista de pessoas, permitindo que seja persistido uma nova pessoa na lista com nome único
-    if (indice == -1) {
-
-      // atribui os valores do formulário para a variável pessoa
-      this.pessoa = this.formulario.value
-
-      // invoca a função post do serviço de pessoas e persiste os dados no json, atualiza a lista de pessoas cadastradas e soma a quantidade de pessoas por estado na lista de estatísticas 
-      this.apiPessoa.post(this.pessoa).subscribe(pessoa => {
-        this.listaPessoas.push(pessoa)
-        this.somarPessoaPorEstado(pessoa)
-      });
-
-    }
+    return this.formulario.valid
 
   }
 
-  atualizar(i: number) {
-    this.pessoa = this.formulario.value
-    return this.apiPessoa.put(this.pessoa).subscribe()
+  criar() {
+
+
+
+    // atribui os valores do formulário para a variável pessoa
+
+
+
+    if (this.onSubmit()) {
+      this.pessoa = this.formulario.value
+      for (let i = 0; i < this.listaPessoas.length; i++) {
+        if (this.listaPessoas[i].nome === this.pessoa.nome) {
+          return
+        }
+      }
+
+      // invoca a função post do serviço de pessoas e persiste os dados no json, atualiza a lista de pessoas cadastradas e soma a quantidade de pessoas por estado na lista de estatísticas
+      this.apiPessoa.post(this.pessoa).subscribe(pessoa => {
+        this.listaPessoas.push(pessoa)
+        this.somarPessoaPorEstado(pessoa)
+        this.limparFormulario()
+      })
+
+
+    }
+
   }
 
   deletar() {
 
-    this.apiPessoa.delete(new Pessoa()).subscribe()
+    let aux: Pessoa[] = this.listaPessoas.splice(this.idSelecionado, 1)
+    this.apiPessoa.delete(aux[0]).subscribe(pessoa => {
+      this.subtrairPessoaPorEstado(this.pessoa),
+        this.cancelar()
+    });
 
   }
 
   editar() {
-    console.log("Editando campos")
+
+
+
+    if (this.onSubmit()) {
+      let pessoaAntiga: Pessoa = this.pessoa
+      let idPessoaAntiga = this.pessoa.id
+      this.pessoa = this.formulario.value
+      this.pessoa.id = idPessoaAntiga
+      this.apiPessoa.put(this.pessoa).subscribe(pessoa => {
+
+
+        if (pessoaAntiga.estado === this.pessoa.estado) {
+          this.somarPessoaPorEstado(pessoa)
+          this.listaPessoas[this.idSelecionado] = pessoa
+        } else {
+          this.subtrairPessoaPorEstado(pessoaAntiga)
+          this.somarPessoaPorEstado(pessoa)
+          this.listaPessoas[this.idSelecionado] = pessoa
+        }
+        
+      })
+    }
+    
+
   }
 
+  // Cancela a edição dos dados e esconde as opções de atualização
   cancelar() {
     this.editarCampos = !this.editarCampos
+    this.limparFormulario()
   }
 
-
+  // Seleciona um id na lista e carrega na variavel pessoa para atualizações
   selecionar(i: number) {
     this.editarCampos = true
     this.pessoa = this.listaPessoas[i]
-    console.table(this.pessoa)
-    this.apiCidade.getAllCidades(this.pessoa.estado).subscribe()
-    this.formulario = new FormGroup({
-      
-      cidade : new FormControl(this.pessoa.cidade),
-      estado : new FormControl(this.pessoa.estado),
-      nome : new FormControl(this.pessoa.nome),
-      email : new FormControl(this.pessoa.email),
-      telefone : new FormControl(this.pessoa.telefone)
+    this.idSelecionado = i
+    this.apiCidade.getAllCidades(this.pessoa.estado).subscribe(retorno => {
+      this.cidades = retorno;
+      this.formulario.controls.nome.setValue(this.pessoa.nome)
+      this.formulario.controls.cidade.setValue(this.pessoa.cidade)
+      this.formulario.controls.estado.setValue(this.pessoa.estado)
+      this.formulario.controls.email.setValue(this.pessoa.email)
+      this.formulario.controls.telefone.setValue(this.pessoa.telefone)
 
     })
-   
+
   }
 
   getAllPessoas() {
@@ -220,11 +239,18 @@ export class CidadesComponent implements OnInit {
   }
 
   getCidades() {
+    this.formulario.controls.cidade.setValue("")
     if (this.formulario.value.estado !== null) {
       this.apiCidade.getAllCidades(this.formulario.value.estado).subscribe(cidades => this.cidades = cidades)
     }
   }
 
+  limparFormulario() {
+    this.formulario.reset()
+    this.submitted = false
+    this.pessoa = new Pessoa()
+    this.idSelecionado = -1
+  }
 
 
 

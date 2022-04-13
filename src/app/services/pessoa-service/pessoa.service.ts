@@ -8,7 +8,7 @@ import { Pessoa } from 'src/app/models/Pessoa';
 })
 export class PessoaService {
 
-  url:string = "http://localhost:3000/funcionario"
+  url:string = "http://localhost:3000/pessoas"
   constructor(private http:HttpClient) { }
 
   post(p : Pessoa) : Observable<Pessoa>{

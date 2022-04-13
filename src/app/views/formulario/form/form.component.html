@@ -48,7 +48,7 @@
                             aria-label="Floating label select example"
                             [ngClass]="{ 'is-invalid': submitted && f.cidade.errors }">
                             <option selected>Selecione a cidade</option>
-                            <option *ngFor="let cidade of cidades">
+                            <option *ngFor="let cidade of cidades" [value]="cidade.nome">
                                 {{ cidade.nome }}
                             </option>
                         </select>
@@ -97,7 +97,7 @@
 
             <div class="mb-3">
                 <label for="telefone" class="form-label">Telefone</label>
-                <input type="text" name="telefone" formControlName="telefone" placeholder="Telefone"
+                <input type="number" name="telefone" formControlName="telefone" placeholder="Telefone"
                     class="form-control" [ngClass]="{ 'is-invalid': submitted && f.telefone.errors }">
                 <div *ngIf="submitted && f.telefone.errors" class="invalid-feedback">
                     <div *ngIf="f.telefone.errors">O telefone deve conter apenas numeros</div>
@@ -107,7 +107,7 @@
             </div>
 
             <div class="mb-3">
-                <input type="submit" class="btn btn-primary" value="Cadastrar" *ngIf="!editarCampos">
+                <input type="submit" class="btn btn-primary" value="Cadastrar" *ngIf="!editarCampos" (click)="criar()">
                 <input type="submit" class="btn btn-primary" type="button" (click)="editar()" value="editar"     *ngIf="editarCampos">
                 <input type="submit" class="btn btn-primary" type="button" (click)="deletar()" value="deletar"   *ngIf="editarCampos">
                 <input type="submit" class="btn btn-primary" type="button" (click)="cancelar()" value="cancelar" *ngIf="editarCampos">
@@ -129,7 +129,7 @@
         </thead>
         <tbody>
             <tr *ngFor="let pessoa of listaPessoas; let i = index">
-                <th scope="row"> {{ i }} </th>
+                <th scope="row"> {{ i + 1 }} </th>
                 <td>{{ pessoa.nome }}</td>
                 <td>{{ pessoa.email }}</td>
                 <td>{{ pessoa.telefone }}</td>
