@@ -1,0 +1,160 @@
+<div class="container-fluid">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Navbar</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Link</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        Dropdown
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="#">Action</a></li>
+                        <li><a class="dropdown-item" href="#">Another action</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#">Something else here</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled">Disabled</a>
+                </li>
+            </ul>
+            <form class="d-flex">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="container mt-3">
+
+        <form class="form-floating d-grid gap-2" [formGroup]="formulario" (ngSubmit)="onSubmit()">
+            <div class="row g-2">
+                <div class="col-md">
+                    <div class="form-floating">
+                        <select class="form-select" id="floatingSelectGrid" name="cidade" formControlName="cidade"
+                            aria-label="Floating label select example"
+                            [ngClass]="{ 'is-invalid': submitted && f.cidade.errors }">
+                            <option selected>Selecione a cidade</option>
+                            <option *ngFor="let cidade of cidades">
+                                {{ cidade.nome }}
+                            </option>
+                        </select>
+                        <div *ngIf="submitted && f.cidade.errors" class="invalid-feedback">
+                            <div *ngIf="f.cidade.errors.required">Informe a cidade</div>
+                        </div>
+                        <label for="floatingSelectGrid">Selecione a cidade</label>
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="form-floating">
+                        <select class="form-select" id="floatingSelectGrid" name="estado"
+                            aria-label="Floating label select example" (change)="getCidades()" formControlName="estado"
+                            [ngClass]="{ 'is-invalid': submitted && f.estado.errors }"
+                            >
+                            <option value="" selected>Selecione o estado</option>
+                            <option [value]="estado" *ngFor="let estado of estados">{{ estado }}</option>
+                            
+                        </select>
+                        <div *ngIf="submitted && f.estado.errors" class="invalid-feedback">
+                            <div *ngIf="f.estado.errors.required">Informe o estado</div>
+                        </div>
+                        <label for="floatingSelectGrid">Selecione o estado</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="nome" class="form-label">Nome</label>
+                <input type="text" id="nome" name="nome" formControlName="nome" placeholder="Nome" class="form-control"
+                    [ngClass]="{ 'is-invalid': submitted && f.nome.errors }">
+                <div *ngIf="submitted && f.nome.errors" class="invalid-feedback">
+                    <div *ngIf="f.nome.errors.required">Informe um nome</div>
+                    <div *ngIf="f.nome.errors">Nome permite apenas letras</div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">E-mail</label>
+                <input type="email" formControlName="email" placeholder="E-mail" class="form-control"
+                    [ngClass]="{ 'is-invalid': submitted && f.email.errors }" />
+                <div *ngIf="submitted && f.email.errors" class="invalid-feedback">
+                    <div *ngIf="f.email.errors.required">Email is required</div>
+                    <div *ngIf="f.email.errors.email">Email must be a valid email address</div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="telefone" class="form-label">Telefone</label>
+                <input type="text" name="telefone" formControlName="telefone" placeholder="Telefone"
+                    class="form-control" [ngClass]="{ 'is-invalid': submitted && f.telefone.errors }">
+                <div *ngIf="submitted && f.telefone.errors" class="invalid-feedback">
+                    <div *ngIf="f.telefone.errors">O telefone deve conter apenas numeros</div>
+                    <div *ngIf="f.telefone.errors.required">Informe um telefone válido</div>
+
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <input type="submit" class="btn btn-primary" value="Cadastrar" *ngIf="!editarCampos">
+                <input type="submit" class="btn btn-primary" type="button" (click)="editar()" value="editar"     *ngIf="editarCampos">
+                <input type="submit" class="btn btn-primary" type="button" (click)="deletar()" value="deletar"   *ngIf="editarCampos">
+                <input type="submit" class="btn btn-primary" type="button" (click)="cancelar()" value="cancelar" *ngIf="editarCampos">
+            </div>
+        </form>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Nome</th>
+                <th scope="col">Email</th>
+                <th scope="col">Telefone</th>
+                <th scope="col">Cidade</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Escolha</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let pessoa of listaPessoas; let i = index">
+                <th scope="row"> {{ i }} </th>
+                <td>{{ pessoa.nome }}</td>
+                <td>{{ pessoa.email }}</td>
+                <td>{{ pessoa.telefone }}</td>
+                <td>{{ pessoa.cidade }}</td>
+                <td>{{ pessoa.estado }}</td>
+                <td>
+                    <input type="button" value="selecionar" class="btn btn-outline-primary" (click)="selecionar( i )">
+                </td>
+            </tr>
+           
+        </tbody>
+    </table>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-2" *ngFor="let estatistica of estatisticas">
+                <div class="card">
+                    <h4> {{ estatistica.estado }} </h4>
+                    <h4> {{ estatistica.quantidade }} pessoas </h4>
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+
+</div>
