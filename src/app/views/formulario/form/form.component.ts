@@ -1,7 +1,5 @@
-import { ThisReceiver } from '@angular/compiler';
-import { nullSafeIsEquivalent } from '@angular/compiler/src/output/output_ast';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 
 import { Cidade } from 'src/app/models/Cidade';
@@ -235,6 +233,7 @@ export class CidadesComponent implements OnInit {
       this.formulario.controls.telefone.setValue(this.pessoa.telefone)
 
     })
+    window.scrollTo(0,0)
 
   }
 
@@ -254,6 +253,7 @@ export class CidadesComponent implements OnInit {
 
   limparFormulario() {
     this.formulario.reset()
+    this.cidades = []
     this.submitted = false
     this.pessoa = new Pessoa()
     this.idSelecionado = -1
